@@ -9,22 +9,26 @@
             font-family: Arial, sans-serif;
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 10px;
             background-color: #f4f4f4;
+            overflow-x: hidden;
+            touch-action: pan-y;
         }
         h1 {
             text-align: center;
             color: #333;
+            font-size: 24px;
         }
         .calendar-container {
             display: flex;
+            flex-direction: row;
             justify-content: space-between;
             margin-bottom: 20px;
         }
         .calendar {
             width: 45%;
             background-color: #fff;
-            padding: 20px;
+            padding: 15px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
@@ -37,14 +41,15 @@
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
+            gap: 3px;
             text-align: center;
         }
         .calendar-grid div {
-            padding: 10px;
+            padding: 8px;
             cursor: pointer;
             border-radius: 4px;
             position: relative;
+            font-size: 14px;
         }
         .calendar-grid div:hover {
             background-color: #e0e0e0;
@@ -60,10 +65,10 @@
         .calendar-grid .has-entries::after {
             content: '';
             position: absolute;
-            bottom: 5px;
-            right: 5px;
-            width: 8px;
-            height: 8px;
+            bottom: 3px;
+            right: 3px;
+            width: 6px;
+            height: 6px;
             background-color: #dc3545;
             border-radius: 50%;
         }
@@ -77,45 +82,50 @@
             background-color: rgba(0,0,0,0.5);
             justify-content: center;
             align-items: center;
+            z-index: 1000;
         }
         .modal-content {
             background-color: #fff;
-            padding: 20px;
+            padding: 15px;
             border-radius: 8px;
-            width: 400px;
+            width: 90%;
+            max-width: 400px;
             text-align: center;
+            box-sizing: border-box;
         }
         .modal-content input, .modal-content button {
-            margin: 10px 0;
+            margin: 8px 0;
             padding: 8px;
             width: 100%;
             box-sizing: border-box;
+            font-size: 14px;
         }
         .entries {
-            margin-top: 20px;
-            max-height: 300px;
+            margin-top: 15px;
+            max-height: 250px;
             overflow-y: auto;
         }
         .entry {
             border: 1px solid #ddd;
-            padding: 10px;
-            margin-bottom: 10px;
+            padding: 8px;
+            margin-bottom: 8px;
             border-radius: 4px;
             display: flex;
             align-items: center;
             cursor: pointer;
         }
         .entry img {
-            max-width: 100px;
-            margin-right: 10px;
+            max-width: 80px;
+            margin-right: 8px;
         }
         button {
-            padding: 8px 16px;
+            padding: 8px 12px;
             cursor: pointer;
             background-color: #007bff;
             color: #fff;
             border: none;
             border-radius: 4px;
+            font-size: 14px;
         }
         button:hover {
             background-color: #0056b3;
@@ -127,7 +137,7 @@
             background-color: #c82333;
         }
         .add-entry-btn {
-            margin-top: 10px;
+            margin-top: 8px;
             background-color: #28a745;
         }
         .add-entry-btn:hover {
@@ -143,20 +153,64 @@
             background-color: rgba(0,0,0,0.8);
             justify-content: center;
             align-items: center;
+            z-index: 1000;
         }
         .fullscreen-content {
             background-color: #fff;
-            padding: 20px;
+            padding: 15px;
             border-radius: 8px;
             text-align: center;
-            max-width: 80%;
-            max-height: 80%;
+            max-width: 90%;
+            max-height: 90%;
             overflow: auto;
+            box-sizing: border-box;
         }
         .fullscreen-content img {
             max-width: 100%;
             max-height: 60vh;
             object-fit: contain;
+        }
+        @media (max-width: 768px) {
+            .calendar-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            .calendar {
+                width: 100%;
+                margin-bottom: 20px;
+            }
+            .calendar-grid div {
+                padding: 6px;
+                font-size: 12px;
+            }
+            .calendar-grid .has-entries::after {
+                width: 5px;
+                height: 5px;
+                bottom: 2px;
+                right: 2px;
+            }
+            .modal-content {
+                width: 95%;
+                padding: 10px;
+            }
+            .entry img {
+                max-width: 60px;
+            }
+            button {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+            h1 {
+                font-size: 20px;
+            }
+            h2 {
+                font-size: 16px;
+            }
+            .fullscreen-content {
+                max-width: 95%;
+                max-height: 95%;
+                padding: 10px;
+            }
         }
     </style>
 </head>
@@ -189,7 +243,8 @@
             <div class="entries" id="date-entries"></div>
             <button class="add-entry-btn" onclick="showAddEntryForm()">Add New Entry</button>
             <div id="add-entry-form" style="display: none;">
-                <input type="text" id="staff-number" placeholder="Your Staff Number">
+                <input type="text" id="staff-number" placeholder="Staff Number/WhatsApp">
+                <input type="text" id="comments" placeholder="Comments (optional)">
                 <input type="file" id="image-upload" accept="image/*">
                 <button onclick="saveEntry()">Save</button>
             </div>
@@ -200,6 +255,7 @@
     <div class="fullscreen-modal" id="fullscreen-modal">
         <div class="fullscreen-content">
             <h3 id="fullscreen-staff-number"></h3>
+            <p id="fullscreen-comments"></p>
             <img id="fullscreen-image" src="" alt="Full Image">
             <button onclick="closeFullscreenModal()">Close</button>
         </div>
@@ -294,47 +350,71 @@
         function closeModal() {
             document.getElementById('modal').style.display = 'none';
             document.getElementById('staff-number').value = '';
+            document.getElementById('comments').value = '';
             document.getElementById('image-upload').value = '';
             document.getElementById('add-entry-form').style.display = 'none';
         }
 
         function saveEntry() {
             const staffNumber = document.getElementById('staff-number').value.trim();
+            const comments = document.getElementById('comments').value.trim();
             const imageFile = document.getElementById('image-upload').files[0];
 
             if (!staffNumber) {
-                alert('Please enter your Staff Number.');
+                alert('Please enter your Staff Number/WhatsApp.');
                 return;
             }
             if (!imageFile) {
                 alert('Please select an image.');
                 return;
             }
+            if (imageFile.size > 5 * 1024 * 1024) { // 5MB limit
+                alert('Image size exceeds 5MB. Please select a smaller file.');
+                return;
+            }
+            if (!selectedCalendar || selectedDate === null) {
+                alert('Error: No calendar or date selected. Please try again.');
+                console.error('saveEntry: selectedCalendar or selectedDate is undefined', { selectedCalendar, selectedDate });
+                return;
+            }
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const entries = JSON.parse(localStorage.getItem(`entries-${selectedCalendar}`) || '[]');
-                    entries.push({
-                        date: selectedDate,
-                        month: currentMonth[selectedCalendar],
-                        year: currentYear[selectedCalendar],
-                        staffNumber: staffNumber,
-                        image: e.target.result
-                    });
-                    localStorage.setItem(`entries-${selectedCalendar}`, JSON.stringify(entries));
-                    renderDateEntries(selectedCalendar, selectedDate);
-                    renderCalendar(selectedCalendar);
-                    closeModal();
-                } catch (error) {
-                    console.error('Error saving entry:', error);
-                    alert('An error occurred while saving. Please try again.');
+            try {
+                if (typeof localStorage === 'undefined') {
+                    throw new Error('localStorage is not available in this browser.');
                 }
-            };
-            reader.onerror = function() {
-                alert('Error reading the image file.');
-            };
-            reader.readAsDataURL(imageFile);
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        console.log('FileReader: Image loaded successfully');
+                        const entries = JSON.parse(localStorage.getItem(`entries-${selectedCalendar}`) || '[]');
+                        entries.push({
+                            date: selectedDate,
+                            month: currentMonth[selectedCalendar],
+                            year: currentYear[selectedCalendar],
+                            staffNumber: staffNumber,
+                            comments: comments,
+                            image: e.target.result
+                        });
+                        localStorage.setItem(`entries-${selectedCalendar}`, JSON.stringify(entries));
+                        console.log('saveEntry: Entry saved successfully', entries);
+                        renderDateEntries(selectedCalendar, selectedDate);
+                        renderCalendar(selectedCalendar);
+                        closeModal();
+                    } catch (error) {
+                        console.error('saveEntry: Error saving entry', error);
+                        alert('An error occurred while saving. Please try again.');
+                    }
+                };
+                reader.onerror = function(error) {
+                    console.error('FileReader: Error reading image file', error);
+                    alert('Error reading the image file. Please select a valid image.');
+                };
+                reader.readAsDataURL(imageFile);
+            } catch (error) {
+                console.error('saveEntry: General error', error);
+                alert('An error occurred while saving. Please try again.');
+            }
         }
 
         function renderDateEntries(type, day) {
@@ -346,10 +426,11 @@
                     entry.month === currentMonth[type] && 
                     entry.year === currentYear[type]) {
                     entriesDiv.innerHTML += `
-                        <div class="entry" onclick="openFullscreenModal('${entry.image}', '${entry.staffNumber}')">
+                        <div class="entry" onclick="openFullscreenModal('${entry.image}', '${entry.staffNumber}', '${entry.comments || ''}')">
                             <img src="${entry.image}" alt="Uploaded Image">
                             <div>
-                                <p>Staff Number: ${entry.staffNumber}</p>
+                                <p>Staff Number/WhatsApp: ${entry.staffNumber}</p>
+                                ${entry.comments ? `<p>Comments: ${entry.comments}</p>` : ''}
                                 <button class="delete-btn" onclick="event.stopPropagation(); deleteEntry('${type}', ${index}, ${day})">Delete</button>
                             </div>
                         </div>
@@ -358,10 +439,11 @@
             });
         }
 
-        function openFullscreenModal(imageSrc, staffNumber) {
+        function openFullscreenModal(imageSrc, staffNumber, comments) {
             const fullscreenModal = document.getElementById('fullscreen-modal');
             document.getElementById('fullscreen-image').src = imageSrc;
-            document.getElementById('fullscreen-staff-number').textContent = `Staff Number: ${staffNumber}`;
+            document.getElementById('fullscreen-staff-number').textContent = `Staff Number/WhatsApp: ${staffNumber}`;
+            document.getElementById('fullscreen-comments').textContent = comments ? `Comments: ${comments}` : '';
             fullscreenModal.style.display = 'flex';
         }
 
@@ -377,7 +459,7 @@
                 renderDateEntries(type, day);
                 renderCalendar(type);
             } catch (error) {
-                console.error('Error deleting entry:', error);
+                console.error('deleteEntry: Error deleting entry', error);
                 alert('An error occurred while deleting. Please try again.');
             }
         }
